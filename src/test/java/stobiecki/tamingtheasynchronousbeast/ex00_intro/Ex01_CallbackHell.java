@@ -11,6 +11,8 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class Ex01_CallbackHell {
 
+    // scenario: find customer, then find its orders, then find shopping card for each order
+
     @Test
     @SneakyThrows
     public void shouldFindCustomerAndItsOrdersAndTheirShoppingCarts_CallbackHell() {

@@ -8,13 +8,14 @@ import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.ShoppingCart;
 
 public interface AsynchronousReactiveService {
 
+    // Ex01_CallbackHell
     Mono<Customer> findCustomer(String customerId);
 
     Flux<Order> findOrders(Customer customer);
 
     Mono<ShoppingCart> findShoppingCard(Order order);
 
-
+    // Ex02_CallbackComposition
     Mono<Integer> findAge(String userId);
 
     Mono<String> findAddress(String userId);

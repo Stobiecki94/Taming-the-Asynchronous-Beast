@@ -19,10 +19,12 @@ public class Ex02_CallbackComposition {
 
     private static final String USER_ID = "userId";
 
+    // scenario: get age, address and hobby simultaneously
+
     @Test
     @SneakyThrows
     public void executeParallelAndCombine_Callback() {
-        AsynchronousCallbackServiceImpl service = new AsynchronousCallbackServiceImpl(Executors.newFixedThreadPool(2));
+        AsynchronousCallbackService service = new AsynchronousCallbackServiceImpl(Executors.newFixedThreadPool(2));
 
         CountDownLatch completionSignal = new CountDownLatch(3);
 
@@ -45,14 +47,13 @@ public class Ex02_CallbackComposition {
         }, ex -> log.error("Error handling here", ex));
 
 
-        //both operation may accomplish in different time. It is our responsibility
-        //to wait for completion of both
+        //operations may accomplish in different time. It is our responsibility to wait for completion of all opearations
         boolean await10Seconds = completionSignal.await(10, TimeUnit.SECONDS);
         assertThat(await10Seconds).withFailMessage("Await timed out!").isTrue();
 
         log.info("Age: {} address: {} hobby: {}", ageHolder.getValue(), addressHolder.getValue(), hobbyHolder.getValue());
     }
-
+    // Age: 10 address: Warsaw, Woloska 24 hobby: Football
 
     @Test
     @SneakyThrows
@@ -65,6 +66,7 @@ public class Ex02_CallbackComposition {
                 .doOnNext(next -> log.info("Age: {} address: {} hobby: {}", next.getT1(), next.getT2(), next.getT3()))
                 .block();
     }
+    // Age: 10 address: Warsaw, Woloska 24 hobby: Football
 
     @Data
     static class Holder<T> {

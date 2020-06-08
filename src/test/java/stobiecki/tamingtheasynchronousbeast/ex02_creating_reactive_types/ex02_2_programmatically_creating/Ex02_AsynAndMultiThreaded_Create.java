@@ -79,24 +79,5 @@ public class Ex02_AsynAndMultiThreaded_Create {
     }
 
 
-    //todo next example for Spring Event Listener https://stackoverflow.com/questions/60965045/how-to-bridge-between-a-non-reactive-spring-eventlistener-and-a-reactive-flux or maybe when next ?
-    //todo
-    @Test
-    public void todooo() {
-//        Flux<String> bridge = Flux.create(sink -> {
-//            sink.onRequest(n -> channel.poll(n)) //1 poll for events form the channel when requests are made with the given number, "n" - the number of items requested
-//                    .onCancel(channel::cancel) //call channel's cancel method when the Flux is cancelled
-//                    .onDispose(channel::close); //the channel.close method is given to onDispose to be invoked for complete, error, cancel
-//            channel.register(sink::next); //register the sink's "next" methods as a listerer to channel
-//        });
-    }
-
-    //todo https://projectreactor.io/docs/core/release/reference/#producing.create ten WARNING
-    @Test
-    public void warning() {
-//        subscrineOn(Scheduler, false)
-    }
-    //todo write example that spring REST api, if someone send request, then event and then something happened, or database example
-
 
 }

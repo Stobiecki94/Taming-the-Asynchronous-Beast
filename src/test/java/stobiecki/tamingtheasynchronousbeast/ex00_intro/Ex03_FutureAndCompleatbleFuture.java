@@ -9,7 +9,7 @@ import reactor.core.scheduler.Schedulers;
 import java.util.concurrent.*;
 
 @Slf4j
-public class Ex03_FutureComposition {
+public class Ex03_FutureAndCompleatbleFuture {
 
     /**
      * Future - Java 1.5 (2005), placeholder for a result, BUT: no notify on completion, no chaining, no exception handling....

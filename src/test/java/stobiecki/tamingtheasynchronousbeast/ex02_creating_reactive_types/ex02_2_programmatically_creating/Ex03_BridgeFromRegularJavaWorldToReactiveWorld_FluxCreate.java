@@ -4,6 +4,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
 import java.util.List;
@@ -41,14 +42,16 @@ public class Ex03_BridgeFromRegularJavaWorldToReactiveWorld_FluxCreate {
                 }
             };
 
+            //register created listener
             eventProcessor.register(myEventListener);
 
+            //remove listener on dispose
             emitter.onDispose(() -> eventProcessor.removeListener(myEventListener)); // <-- clean up
         });
 
         bridge
-//                .subscribeOn(Schedulers.single(), false) //variant: requestOnSeparateThread = false will use the Scheduler thread for the create and still let data flow by performing request in the original thread
-                .publishOn(Schedulers.boundedElastic())//todo check that above!
+                .publishOn(Schedulers.boundedElastic())
+                .subscribeOn(Schedulers.elastic())
                 .subscribe(
                         log::info,
                         error -> log.error("Error", error),

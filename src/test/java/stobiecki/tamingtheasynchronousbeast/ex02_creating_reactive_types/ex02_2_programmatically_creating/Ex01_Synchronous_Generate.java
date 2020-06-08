@@ -14,8 +14,9 @@ public class Ex01_Synchronous_Generate {
 
     //@formatter:off
     /**
-     * Flux.generate - for synchronous and one-by-one emissions, meaning that the sink is a SynchronousSink and that its next() method can only
-     * be called at most once per callback invocation. You can then additionally call error(Throwable) or complete(), but this is optional.
+     * Flux.generate - The simplest form of programmatic creation of a Flux is through the generate method, which takes a generator function.
+     * This is for synchronous and one-by-one emissions
+     * You can then additionally call error(Throwable) or complete(), but this is optional.
      *
      * public static  <T> Flux<T> generate(Consumer <SynchronousSink<T>> generator)
      *
@@ -34,8 +35,9 @@ public class Ex01_Synchronous_Generate {
                 sink -> sink.next(ZonedDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME)));
 
         flux
-                .log()
-                .take(3)
+//                .log()
+                .doOnNext(next -> log.info("Next: {}", next))
+                .take(3) // <-- request(unbounded) and cancel after receiving 3 elements
                 .subscribe();
     }
 
@@ -47,9 +49,10 @@ public class Ex01_Synchronous_Generate {
         Flux<String> flux = Flux.generate(
                 () -> 0,
                 (state, sink) -> {
-                    sink.next("state: " + state);
                     if (state == 5) {
                         sink.complete();
+                    } else {
+                        sink.next("state: " + state);
                     }
                     return state + 1;
                 });
@@ -81,7 +84,6 @@ public class Ex01_Synchronous_Generate {
      * If your state object needs to clean up some resources, use the generate(Supplier<S>, BiFunction, Consumer<S>) variant to clean up the last state instance
      * <p>
      * e.g. In the case of the state containing a database connection or other resource that needs to be handled at the end of the process,
-     * the Consumer lambda could close the connection or otherwise handle any tasks that should be done at the end of the process.
      */
     @Test
     public void generate_cleanUpStateObjectResource() {
@@ -89,13 +91,14 @@ public class Ex01_Synchronous_Generate {
                 AtomicLong::new,
                 (state, sink) -> {
                     long currentState = state.getAndIncrement();
-                    sink.next("state: " + currentState);
                     if (currentState == 5) {
                         sink.complete();
+                    } else {
+                        sink.next("state: " + currentState);
                     }
                     return state;
                 },
-                (state) -> log.info("cleaning up resources"));
+                (state) -> log.info("cleaning up resources")); // <-- close the connection or otherwise handle any tasks that should be done at the end of the process
 
         flux
                 .log()

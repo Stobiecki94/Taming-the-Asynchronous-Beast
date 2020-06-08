@@ -1,33 +1,34 @@
 package stobiecki.tamingtheasynchronousbeast.ex00_intro;
 
-import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
+import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.FutureServiceImpl;
+import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.ReactiveServiceImpl;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 public class Ex04_FutureCombination {
 
+    //scenario: getUsersName -> get their hobbies and age -> then combine
+
     @Test
     public void combination_completableFutureApproach() {
-        CompletableFuture<List<String>> ids = getNames_Future();
+        FutureService futureService = new FutureServiceImpl();
+
+        CompletableFuture<List<String>> ids = futureService.getUsersNames();
 
         CompletableFuture<List<String>> result = ids.thenComposeAsync(l -> {
             Stream<CompletableFuture<String>> zip =
                     l.stream().map(name -> {
-                        CompletableFuture<String> hobbyTask = getHobby_Future(name);
-                        CompletableFuture<Integer> ageTask = getAge_Future(name);
+                        CompletableFuture<String> hobbyTask = futureService.getHobby(name);
+                        CompletableFuture<Integer> ageTask = futureService.getAge(name);
 
                         return hobbyTask.thenCombineAsync(ageTask, (hobby, age) -> name + " is " + age + " years old and likes " + hobby);
                     });
@@ -50,8 +51,10 @@ public class Ex04_FutureCombination {
 
     @Test
     public void combination_reactorApproach() {
-        Mono<List<String>> flux = getNames_Flux()
-                .flatMap(name -> Mono.zip(getHobby_Mono(name), getAge_Mono(name),
+        ReactiveService reactiveService = new ReactiveServiceImpl();
+
+        Mono<List<String>> flux = reactiveService.getUsersNames()
+                .flatMap(name -> Mono.zip(reactiveService.getHobby(name), reactiveService.getAge(name),
                         (hobby, age) -> name + " is " + age + " years old and likes " + hobby))
                 .collectList();
 
@@ -63,41 +66,5 @@ public class Ex04_FutureCombination {
                 "Grzegorz is 15 years old and likes Chess");
     }
 
-    private Mono<Integer> getAge_Mono(String id) {
-        return Mono.fromCallable(() -> AGES.get(id))
-                .subscribeOn(Schedulers.boundedElastic());
-    }
 
-    private Mono<String> getHobby_Mono(String id) {
-        return Mono.fromCallable(() -> HOBBIES.get(id))
-                .subscribeOn(Schedulers.boundedElastic());
-    }
-
-    private Flux<String> getNames_Flux() {
-        return Flux.just("Adam", "Kuba", "Grzegorz")
-                .subscribeOn(Schedulers.boundedElastic());
-    }
-
-    private CompletableFuture<Integer> getAge_Future(String id) {
-        return CompletableFuture.supplyAsync(() -> AGES.get(id));
-    }
-
-    private CompletableFuture<String> getHobby_Future(String id) {
-        return CompletableFuture.supplyAsync(() -> HOBBIES.get(id));
-    }
-
-    private CompletableFuture<List<String>> getNames_Future() {
-        return CompletableFuture.supplyAsync(() -> asList("Adam", "Kuba", "Grzegorz"));
-    }
-
-    private final Map<String, String> HOBBIES = new ImmutableMap.Builder<String, String>()
-            .put("Adam", "Football")
-            .put("Kuba", "Volleyball")
-            .put("Grzegorz", "Chess")
-            .build();
-    private final Map<String, Integer> AGES = new ImmutableMap.Builder<String, Integer>()
-            .put("Adam", 13)
-            .put("Kuba", 14)
-            .put("Grzegorz", 15)
-            .build();
 }

@@ -6,7 +6,6 @@
 
     <groupId>stobiecki</groupId>
     <artifactId>taming-the-asynchronous-beast</artifactId>
-    <packaging>pom</packaging>
     <version>1.0.0-SNAPSHOT</version>
 
     <name>Taming the Asynchronous Beast</name>
@@ -29,10 +28,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>org.springframework.boot</groupId>-->
-<!--            <artifactId>spring-boot-starter-data-mongodb-reactive</artifactId>-->
-<!--        </dependency>-->
 
         <dependency>
             <groupId>com.google.guava</groupId>

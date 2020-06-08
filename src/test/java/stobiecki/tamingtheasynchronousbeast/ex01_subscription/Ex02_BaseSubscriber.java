@@ -34,6 +34,17 @@ public class Ex02_BaseSubscriber {
     }
 
     @Test
+    public void boredAfterFirstElementSubscriber() {
+        temperatureService
+                .getTemperature("Warsaw")
+//                .log()
+                .subscribe(new BoredSubscriber<>()); //<-- this subscriber will cancel subscription
+
+//        A cancellation is a signal that the source should stop producing elements.
+//        However, it is NOT guaranteed to be immediate: Some sources might produce elements so fast that they could complete even before receiving the cancel instruction.
+    }
+
+    @Test
     public void requestOneMoreWhenReceiveSubscriber() {
         temperatureService
                 .getTemperature("Warsaw")
@@ -41,32 +52,23 @@ public class Ex02_BaseSubscriber {
                 .subscribe(new TemperatureSubscriber<>());
     }
 
-    @Test
-    public void boredAfterFirstSubscriber() {
-        temperatureService
-                .getTemperature("Warsaw")
-//                .log()
-                .subscribe(new BoredAfterFirstSubscriber<>()); //<-- this subscriber will cancel subscription
-
-//        A cancellation is a signal that the source should stop producing elements.
-//        However, it is NOT guaranteed to be immediate: Some sources might produce elements so fast that they could complete even before receiving the cancel instruction.
-    }
 
     /**
      * Note: reactor.core.publisher.BaseSubscriber is the recommended abstract class for user-defined Subscribers in Reactor.
      */
     static class TemperatureSubscriber<T> extends BaseSubscriber<T> {
 
+        // when the subscription is established
         public void hookOnSubscribe(Subscription subscription) {
             log.info("Subscribed");
             log.info("Requesting 1 element");
-            request(1);
+            request(1); //how much data to request
         }
 
         public void hookOnNext(T value) {
             log.info("Next: {}", value);
             log.info("Requesting 1 element more");
-            request(1);
+            request(1); //how much data to request
         }
 
         public void hookOnComplete() {
@@ -92,12 +94,15 @@ public class Ex02_BaseSubscriber {
      */
     static class UnboundedSubscriber<T> extends BaseSubscriber<T> {
 
+        // when the subscription is established
+        @Override
         public void hookOnSubscribe(Subscription subscription) {
             log.info("Subscribed");
             log.info("Requesting unbounded");
             requestUnbounded(); // == equivalent to request(Long.MAX_VALUE))
         }
 
+        @Override
         public void hookOnNext(T value) {
             log.info("Next: {}", value);
         }
@@ -106,14 +111,17 @@ public class Ex02_BaseSubscriber {
     /**
      * BaseSubscriber offers a cancel() method.
      */
-    static class BoredAfterFirstSubscriber<T> extends BaseSubscriber<T> {
+    static class BoredSubscriber<T> extends BaseSubscriber<T> {
 
+        // when the subscription is established
+        @Override
         public void hookOnSubscribe(Subscription subscription) {
             log.info("Subscribed");
             log.info("Requesting unbounded");
             requestUnbounded();
         }
 
+        @Override
         public void hookOnNext(T value) {
             log.info("I am bored, cancelling after received: {}", value);
             cancel();

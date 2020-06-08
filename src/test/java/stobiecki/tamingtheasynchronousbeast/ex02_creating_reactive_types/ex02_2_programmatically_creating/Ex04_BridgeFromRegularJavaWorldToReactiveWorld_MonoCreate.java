@@ -62,12 +62,6 @@ public class Ex04_BridgeFromRegularJavaWorldToReactiveWorld_MonoCreate {
         }
     }
 
-    /**
-     * addListener/removeListener pairs
-     * <p>
-     * Note that this works only with single-value emitting listeners.
-     * Otherwise, all subsequent signals are dropped. You may have to add client.removeListener(this); to the listener's body.
-     */
     @Test
     @SneakyThrows
     public void saveResponseContent() {
@@ -75,6 +69,7 @@ public class Ex04_BridgeFromRegularJavaWorldToReactiveWorld_MonoCreate {
         HttpClientWithListeners httpClient = new HttpClientWithListeners(HttpClientBuilder.create().build());
 
         Mono<String> bridge = Mono.create(sink -> {
+
             HttpResponseListener httpResponseListener = httpResponse -> {
                 int statusCode = httpResponse.getStatusLine().getStatusCode();
                 if (statusCode >= 400) {
@@ -83,7 +78,7 @@ public class Ex04_BridgeFromRegularJavaWorldToReactiveWorld_MonoCreate {
                     Try.ofCallable(() -> EntityUtils.toString(httpResponse.getEntity()))
                             .onSuccess(content -> {
                                 if (content.isEmpty()) {
-                                    sink.success();
+                                    sink.success(); // <-- empty
                                 } else {
                                     sink.success(content);
                                 }
@@ -92,7 +87,10 @@ public class Ex04_BridgeFromRegularJavaWorldToReactiveWorld_MonoCreate {
                 }
             };
 
+            //register listener in http client
             httpClient.registerResponseListener(httpResponseListener);
+
+            //remove listener on dispose
             sink.onDispose(() -> httpClient.removeResponseListener(httpResponseListener)); // <-- clean up
         });
 

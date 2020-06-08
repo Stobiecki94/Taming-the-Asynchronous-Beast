@@ -87,7 +87,7 @@ public class Ex01_FactoryMethods {
 
     @Test
     void createAFlux_interval() {
-        Flux<Long> intervalFlux = Flux.interval(Duration.ofSeconds(1)) //TODO TRAP1 `Runs on the Schedulers.parallel() Scheduler`
+        Flux<Long> intervalFlux = Flux.interval(Duration.ofSeconds(1)) //TRAP `Runs on the Schedulers.parallel() Scheduler`
                 .take(5);
 
         StepVerifier.create(intervalFlux)

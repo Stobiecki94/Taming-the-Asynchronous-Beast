@@ -1,8 +1,10 @@
 package stobiecki.tamingtheasynchronousbeast.ex01_subscription;
 
 import lombok.extern.slf4j.Slf4j;
+import org.junit.FixMethodOrder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.junit.runners.MethodSorters;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import reactor.core.publisher.Flux;
@@ -12,22 +14,29 @@ import static org.mockito.BDDMockito.given;
 
 @Slf4j
 @RunWith(MockitoJUnitRunner.class)
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class Ex01_LambdaBasedSubscribeVariants {
 
     @Mock
     private TemperatureService temperatureService;
 
+    /**
+     * subscribe and trigger the sequence
+     */
     @Test
-    public void shouldSubscribeButForWhat() {
+    public void test01_shouldSubscribe() {
         given(temperatureService.getTemperature("Warsaw")).willReturn(Flux.just(10.0, 15.5, 20.0));
 
         temperatureService
                 .getTemperature("Warsaw")
-                .subscribe();
+                .subscribe();// <-- produces no visible output, but it does work
     }
 
+    /**
+     * Do something with each produced value
+     */
     @Test
-    public void shouldGetTemperature() {
+    public void test02_shouldGetTemperature() {
         given(temperatureService.getTemperature("Warsaw")).willReturn(Flux.just(10.0, 15.5, 20.0));
 
         temperatureService
@@ -35,32 +44,47 @@ public class Ex01_LambdaBasedSubscribeVariants {
                 .subscribe(temp -> log.info("Current temperature: {}", temp));
     }
 
+    /**
+     * Deal with values but also react to an error
+     */
     @Test
-    public void subscribeWithErrorCallback() {
-        given(temperatureService.getTemperature("Berlin")).willReturn(Flux.error(new RuntimeException("Cannot connect to Berlin weather server")));
+    public void test03_subscribeWithErrorCallback() {
+        given(temperatureService.getTemperature("Berlin")).willReturn(cannotConnectToBerlinError());
 
         temperatureService
                 .getTemperature("Berlin")
                 .subscribe(
                         temp -> log.info("Current temperature: {}", temp),
-                        error -> log.error("Something went wrong", error));
+                        error -> log.error("Something went wrong: {}", error.getMessage(), error));
     }
 
+    /**
+     * Deal with values and errors but also run some code when the sequence successfully completes
+     */
     @Test
-    public void subscribeWithErrorCallbackAndCompleteConsumer() {
+    public void test04_subscribeWithErrorCallbackAndCompleteConsumer() {
+        //Warsaw -> return 3 temperature measurements and complete (stream has finished)
         given(temperatureService.getTemperature("Warsaw")).willReturn(Flux.just(10.0, 15.5, 20.0));
 
-        given(temperatureService.getTemperature("Berlin")).willReturn(Flux.generate(
-                () -> 0,
-                (counter, sink) -> {
-                    if(counter > 3) {
-                        sink.error(new RuntimeException("Lost connection to Berlin"));
-                    }
-                    sink.next(10.0 + counter);
+        temperatureService
+                .getTemperature("Warsaw")
+                .subscribe(
+                        temp -> log.info("Current temperature: {}", temp),
+                        error -> log.error("Something went wrong: {} <-- error signal", error.getMessage()),
+                        () -> log.info("No more temperature data  <-- completion signal"));
 
-                    return counter + 1;
-                }
-        ));
+    }
+
+    /**
+     * Error signals and completion signals are both terminal events and are exclusive of one another (you never get both)
+     */
+    @Test
+    public void test05_subscribeWithErrorCallbackAndCompleteConsumer2() {
+        //Warsaw -> return 3 temperature measurements and complete (stream has finished)
+        given(temperatureService.getTemperature("Warsaw")).willReturn(Flux.just(10.0, 15.5, 20.0));
+
+        //Berlin -> return 3 temperature measurements and error
+        given(temperatureService.getTemperature("Berlin")).willReturn(return3TemperatureMeasurementsAndConnectionLostError());
 
         log.info("Warsaw");
         temperatureService
@@ -81,10 +105,14 @@ public class Ex01_LambdaBasedSubscribeVariants {
                         () -> log.info("No more temperature data  <-- completion signal"));
 
         //        note: Error signals and completion signals are both terminal events and are exclusive of one another (you never get both).
+        log.info("note: Error signals and completion signals are both terminal events and are exclusive of one another (you never get both)");
     }
 
+    /**
+     * Deal with values and errors and successful completion but also do something with the Subscription produced by this subscribe call
+     */
     @Test
-    public void subscribeWithSubscriptionConsumer_fluxHangs() {
+    public void test06_subscribeWithSubscriptionConsumer() {
         given(temperatureService.getTemperature("Warsaw")).willReturn(Flux.just(10.0, 15.5, 20.0));
 
         temperatureService
@@ -94,11 +122,11 @@ public class Ex01_LambdaBasedSubscribeVariants {
                         error -> log.error("Something went wrong", error),
                         () -> log.info("No more temperature data"),
                         subscription -> log.info("Subscription: {}", subscription));
-//        Note: That variant requires you to do something with the Subscription (perform a request(long) on it or cancel() it). Otherwise the Flux hangs.
+//        Note: That variant requires you to do something with the Subscription (perform a request(long) on it or cancel() it).
     }
 
     @Test
-    public void subscribeWithSubscriptionConsumer() {
+    public void test07_subscribeWithSubscriptionConsumer_cancel() {
         given(temperatureService.getTemperature("Warsaw")).willReturn(Flux.just(10.0, 15.5, 20.0));
 
         temperatureService
@@ -107,12 +135,38 @@ public class Ex01_LambdaBasedSubscribeVariants {
                         temp -> log.info("Current temperature: {}", temp),
                         error -> log.error("Something went wrong", error),
                         () -> log.info("No more temperature data"),
-                        sub -> sub.request(10));
+                        sub -> sub.cancel());
+    }
+
+    @Test
+    public void test08_subscribeWithSubscriptionConsumer_request() {
+        given(temperatureService.getTemperature("Warsaw")).willReturn(Flux.just(10.0, 15.5, 20.0));
+
+        temperatureService
+                .getTemperature("Warsaw")
+                .subscribe(
+                        temp -> log.info("Current temperature: {}", temp),
+                        error -> log.error("Something went wrong", error),
+                        () -> log.info("No more temperature data"),
+                        sub -> sub.request(2));
+    }
+
+    @Test
+    public void test09_subscribeWithSubscriptionConsumer_request2() {
+        given(temperatureService.getTemperature("Warsaw")).willReturn(Flux.just(10.0, 15.5, 20.0));
+
+        temperatureService
+                .getTemperature("Warsaw")
+                .subscribe(
+                        temp -> log.info("Current temperature: {}", temp),
+                        error -> log.error("Something went wrong", error),
+                        () -> log.info("No more temperature data"),
+                        sub -> sub.request(1_000_000));
 //        Note: If 'Subscription consumer' is not specified, then: The subscription will request unbounded demand (Long.MAX_VALUE).
     }
 
     @Test
-    public void subscribeMonoEmpty() {
+    public void test10_subscribeMonoEmpty() {
         Mono.empty()
                 .subscribe(
                         next -> log.info("Next element: {}", next),
@@ -121,7 +175,7 @@ public class Ex01_LambdaBasedSubscribeVariants {
     }
 
     @Test
-    public void subscribeFluxEmpty() {
+    public void test11_subscribeFluxEmpty() {
         Flux.empty()
                 .subscribe(
                         next -> log.info("Next element: {}", next),
@@ -130,7 +184,7 @@ public class Ex01_LambdaBasedSubscribeVariants {
     }
 
     @Test
-    public void subscribeVariants_summary() {
+    public void test12_subscribeVariants_summary() {
         Flux<String> fruits = Flux.just("Apple", "Banana");
 
         log.info("--------------------------------------------------------------------------------------------------------------------------------------");
@@ -165,6 +219,24 @@ public class Ex01_LambdaBasedSubscribeVariants {
                     log.info("Subscription: {}", subscription);
                     subscription.cancel();
                 });
+    }
+
+    private Flux<Double> cannotConnectToBerlinError() {
+        return Flux.error(new RuntimeException("Cannot connect to Berlin weather server"));
+    }
+
+    private Flux<Double> return3TemperatureMeasurementsAndConnectionLostError() {
+        return Flux.generate(
+                () -> 0,
+                (counter, sink) -> {
+                    if (counter >= 3) {
+                        sink.error(new RuntimeException("Lost connection to Berlin"));
+                    }
+                    sink.next(10.0 + counter);
+
+                    return counter + 1;
+                }
+        );
     }
 
 
