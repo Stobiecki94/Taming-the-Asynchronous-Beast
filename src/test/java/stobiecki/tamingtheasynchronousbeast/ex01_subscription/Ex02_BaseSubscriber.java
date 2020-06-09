@@ -48,7 +48,7 @@ public class Ex02_BaseSubscriber {
     public void requestOneMoreWhenReceiveSubscriber() {
         temperatureService
                 .getTemperature("Warsaw")
-//                .log()
+                .log()
                 .subscribe(new TemperatureSubscriber<>());
     }
 

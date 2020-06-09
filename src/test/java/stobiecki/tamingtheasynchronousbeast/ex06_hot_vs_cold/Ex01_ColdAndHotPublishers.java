@@ -26,7 +26,8 @@ public class Ex01_ColdAndHotPublishers {
         sleepForAWhile();
 
         // Let a second subscriber come after some time 3 secs here.
-        flux.subscribe(i -> System.out.println("second_subscriber received value:" + i)); // <-  even when the second subscriber is subscribing 3 seconds later, still it starts getting the values from the beginning all the way
+        flux.subscribe(i -> System.out.println("second_subscriber received value:" + i)); // <-  even when the second subscriber is subscribing 3 seconds later,
+        // still it starts getting the values from the beginning all the way
 
         sleepForAWhile();
     }
@@ -40,7 +41,7 @@ public class Ex01_ColdAndHotPublishers {
      */
     @Test
     public void exampleHotPublisher() {
-        // Start a cold Publisher which emits 0,1,2 every sec.
+        // a cold Publisher which emits 0,1,2 every sec.
         Flux<Long> flux =  Flux.interval(Duration.ofSeconds(1));
 
         // Make the Publisher Hot

@@ -32,6 +32,19 @@ public class BuildVsExecutionTrap {
 
     @Test
     @SneakyThrows
+    public void buildVsExecutionTrap31() {
+        nonBlockingGet(); // <-- there is no subscribe but....
+    }
+    //22:28:38.413 [main] INFO stobiecki.tamingtheasynchronousbeast.ex11_more.BuildVsExecutionTrap - Sending HTTP request
+
+    @Test
+    @SneakyThrows
+    public void buildVsExecutionTrap32() {
+        Mono.defer(() -> nonBlockingGet());
+    }
+
+    @Test
+    @SneakyThrows
     public void buildVsExecutionTrap4() {
         Mono.fromCallable(this::blockingGet)
                 .defaultIfEmpty(fallback()) // <- executed even if not empty
@@ -77,4 +90,11 @@ public class BuildVsExecutionTrap {
         httpClient.execute(request);
         return "Success";
     }
+
+
+    private Mono<String> nonBlockingGet() {
+        log.info("Sending HTTP request");
+        return Mono.fromCallable(() -> blockingGet());
+    }
+
 }

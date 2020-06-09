@@ -25,12 +25,12 @@ public class Ex01_Schedulers {
         CountDownLatch completionSignal = new CountDownLatch(1);
         Flux.just("Apple", "Banana")
                 .doOnNext(next -> log.info("before publishOn {}", next))
-                .publishOn(Schedulers.boundedElastic())
+                .publishOn(Schedulers.newSingle("publishOn"))
                 .doOnNext(next -> log.info("after publishOn {}", next))
-                .subscribeOn(Schedulers.parallel())
+                .subscribeOn(Schedulers.newSingle("subscribeOn"))
                 .doOnNext(next -> log.info("after publishOn {}", next))
                 .subscribe(next -> {
-                }, error -> log.error("Error", error), () -> completionSignal.countDown());
+                }, error -> log.error("Error", error), completionSignal::countDown);
 
         boolean awaitASecond = completionSignal.await(1, TimeUnit.SECONDS);
         assertThat(awaitASecond).withFailMessage("Await timed out!").isTrue();
@@ -89,9 +89,9 @@ public class Ex01_Schedulers {
     @SneakyThrows
     public void parallelWithRunOn() {
         CountDownLatch completionSignal = new CountDownLatch(1);
-        Flux.range(1, 10)
+        Flux.range(1, 5)
                 .parallel() // <- cat /proc/cpuinfo | grep processor | wc -l
-                .runOn(Schedulers.boundedElastic())
+                .runOn(Schedulers.parallel())
                 .flatMap(a -> Mono.just(blockingGetInfo(a)))
                 .sequential()
                 .subscribe(System.out::println, error -> System.out.println("Error " + error.getMessage()), completionSignal::countDown);
@@ -115,11 +115,7 @@ public class Ex01_Schedulers {
 
 
     /**
-     * Getting into ParallelFlux creates
-     * More confusion at times because even if
-     * we pass explicit threadpool with more threads
-     * it will not use those threads and again
-     * will be limited to .parallel() call
+     * customer thread pool -> still Flux.paraller
      */
     @Test
     @SneakyThrows
@@ -128,8 +124,8 @@ public class Ex01_Schedulers {
 
         ExecutorService myPool = Executors.newFixedThreadPool(10);
 
-        Flux.range(1,6)
-                .parallel(4)
+        Flux.range(1,5)
+                .parallel()
                 .runOn(Schedulers.fromExecutorService(myPool))
                 .flatMap(a -> Mono.just(blockingGetInfo(a)))
                 .sequential()
@@ -151,8 +147,8 @@ public class Ex01_Schedulers {
         CountDownLatch completionSignal = new CountDownLatch(1);
 
         ExecutorService myPool = Executors.newFixedThreadPool(5);
-        Flux.range(1,8)
-                .parallel(10)
+        Flux.range(1,5)
+                .parallel(5)
                 .runOn(Schedulers.fromExecutorService(myPool))
                 .flatMap(a -> Mono.just(blockingGetInfo(a)))
                 .sequential()

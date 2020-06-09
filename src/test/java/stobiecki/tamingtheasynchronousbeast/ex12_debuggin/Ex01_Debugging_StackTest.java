@@ -9,10 +9,10 @@ import java.io.File;
 
 public class Ex01_Debugging_StackTest {
 
-    //TRAP and unobvious
+    //TRAP - unobvious
     @Test
     public void debugging() {
-        Hooks.onOperatorDebug(); // <-- uncomment
+//        Hooks.onOperatorDebug(); // <-- uncomment
 
         Mono<Long> totalTxtSize = Flux
                 .just("/tmp", "/home", "/404")
