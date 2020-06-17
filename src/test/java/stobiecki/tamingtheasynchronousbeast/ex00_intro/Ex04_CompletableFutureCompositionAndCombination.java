@@ -9,12 +9,11 @@ import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.ReactiveServiceImpl
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-public class Ex04_FutureCombination {
+public class Ex04_CompletableFutureCompositionAndCombination {
 
     //scenario: getUsersName -> get their hobbies and age -> then combine
 
@@ -22,24 +21,21 @@ public class Ex04_FutureCombination {
     public void combination_completableFutureApproach() {
         FutureService futureService = new FutureServiceImpl();
 
-        CompletableFuture<List<String>> ids = futureService.getUsersNames();
+        CompletableFuture<List<String>> result = futureService.getUsersNames()
+                .thenComposeAsync(userNames -> {
+                    List<CompletableFuture<String>> combinationList =
+                            userNames.stream().map(name -> {
+                                CompletableFuture<String> hobbyTask = futureService.getHobby(name);
+                                CompletableFuture<Integer> ageTask = futureService.getAge(name);
+                                return hobbyTask.thenCombineAsync(ageTask, (hobby, age) -> name + " is " + age + " years old and likes " + hobby);
+                            })
+                                    .collect(Collectors.toList());
 
-        CompletableFuture<List<String>> result = ids.thenComposeAsync(l -> {
-            Stream<CompletableFuture<String>> zip =
-                    l.stream().map(name -> {
-                        CompletableFuture<String> hobbyTask = futureService.getHobby(name);
-                        CompletableFuture<Integer> ageTask = futureService.getAge(name);
-
-                        return hobbyTask.thenCombineAsync(ageTask, (hobby, age) -> name + " is " + age + " years old and likes " + hobby);
-                    });
-            List<CompletableFuture<String>> combinationList = zip.collect(Collectors.toList());
-            CompletableFuture<String>[] combinationArray = combinationList.toArray(new CompletableFuture[combinationList.size()]);
-
-            CompletableFuture<Void> allDone = CompletableFuture.allOf(combinationArray);
-            return allDone.thenApply(v -> combinationList.stream()
-                    .map(CompletableFuture::join)
-                    .collect(Collectors.toList()));
-        });
+                    CompletableFuture<Void> allDone = CompletableFuture.allOf(combinationList.toArray(new CompletableFuture[combinationList.size()]));
+                    return allDone.thenApply(v -> combinationList.stream()
+                            .map(CompletableFuture::join)
+                            .collect(Collectors.toList()));
+                });
 
         List<String> results = result.join();
 

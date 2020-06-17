@@ -3,8 +3,7 @@ package stobiecki.tamingtheasynchronousbeast.ex00_intro;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
-import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.AsynchronousCallbackServiceImpl;
-import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.AsynchronousReactiveServiceImpl;
+import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.*;
 
 import java.util.concurrent.Executors;
 
@@ -32,10 +31,27 @@ public class Ex01_CallbackHell {
     @Test
     @SneakyThrows
     public void shouldFindCustomerAndItsOrdersAndTheirShoppingCarts_ReactorApproach() {
-        AsynchronousReactiveService service = new AsynchronousReactiveServiceImpl();
+        ReactiveService service = new ReactiveServiceImpl();
 
         service.findCustomer("customerId")
                 .flatMapMany(service::findOrders)
+                .flatMap(service::findShoppingCard)
+                .doOnNext(shoppingCart -> log.info("shoppingCart: {}", shoppingCart))
+                .doOnError(error -> log.error("error", error))
+                .blockLast();
+    }
+
+    /**
+     * more sophisticated example -> filter only completed
+     */
+    @Test
+    @SneakyThrows
+    public void shouldFindCustomerAndItsOrdersAndTheirShoppingCarts_filterOnlyCompletedOrders_ReactorApproach() {
+        ReactiveService service = new ReactiveServiceImpl();
+
+        service.findCustomer("customerId")
+                .flatMapMany(service::findOrders)
+                .filter(order -> order.getStatus() == Order.Status.COMPLETED)
                 .flatMap(service::findShoppingCard)
                 .doOnNext(shoppingCart -> log.info("shoppingCart: {}", shoppingCart))
                 .doOnError(error -> log.error("error", error))

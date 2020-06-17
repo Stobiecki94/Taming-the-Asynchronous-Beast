@@ -5,10 +5,11 @@ import java.util.concurrent.CompletableFuture;
 
 public interface FutureService {
 
-    // Ex04_FutureCombination
+    // Ex04_CompletableFutureCompositionAndCombination
+    CompletableFuture<List<String>> getUsersNames();
+
     CompletableFuture<Integer> getAge(String id);
 
     CompletableFuture<String> getHobby(String id);
 
-    CompletableFuture<List<String>> getUsersNames();
 }

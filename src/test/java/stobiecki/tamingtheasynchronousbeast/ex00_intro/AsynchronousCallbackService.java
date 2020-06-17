@@ -1,8 +1,6 @@
 package stobiecki.tamingtheasynchronousbeast.ex00_intro;
 
-import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.Customer;
-import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.Order;
-import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.ShoppingCart;
+import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.*;
 
 import java.util.function.Consumer;
 

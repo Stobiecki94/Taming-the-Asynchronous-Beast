@@ -23,7 +23,7 @@ public class AsynchronousCallbackServiceImpl implements AsynchronousCallbackServ
         executorService.submit(() -> {
             requestToServerSimulation();
             Customer customer = new Customer(customerId, "Adam", "Warsaw, Woloska 24");
-            log.info("Customer found: {}", customer);
+            log.debug("Customer found: {}", customer);
             onSuccess.accept(customer);
         });
     }
@@ -36,7 +36,7 @@ public class AsynchronousCallbackServiceImpl implements AsynchronousCallbackServ
                     new Order(2L, "Warsaw, Grzybowska 1", Order.Status.CANCELLED),
                     new Order(3L, "Warsaw, Woloska 24", Order.Status.PROCESSING))
                     .forEach(order -> {
-                        log.info("Found next order: {} for customer: {}", order, customer.getId());
+                        log.debug("Found next order: {} for customer: {}", order, customer.getId());
                         onSuccess.accept(order);
                     });
         });
@@ -50,7 +50,7 @@ public class AsynchronousCallbackServiceImpl implements AsynchronousCallbackServ
                     new ShoppingCart.Product("Ball", BigDecimal.TEN),
                     new ShoppingCart.Product("Pen", BigDecimal.ONE)
             ));
-            log.info("Found shopping Card: {} for order: {}", shoppingCart, order.getId());
+            log.debug("Found shopping Card: {} for order: {}", shoppingCart, order.getId());
             onSuccess.accept(shoppingCart);
         });
     }

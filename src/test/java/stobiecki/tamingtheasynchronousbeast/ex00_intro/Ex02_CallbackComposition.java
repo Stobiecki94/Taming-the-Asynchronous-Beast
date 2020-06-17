@@ -6,11 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import reactor.core.publisher.Mono;
 import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.AsynchronousCallbackServiceImpl;
-import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.AsynchronousReactiveServiceImpl;
+import stobiecki.tamingtheasynchronousbeast.ex00_intro.model.ReactiveServiceImpl;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,11 +17,11 @@ public class Ex02_CallbackComposition {
 
     private static final String USER_ID = "userId";
 
-    // scenario: get age, address and hobby simultaneously
+    // scenario: get age, address and hobby SIMULTANEOUSLY
 
     @Test
     @SneakyThrows
-    public void executeParallelAndCombine_Callback() {
+    public void executeSimultaneouslyAndCombine_Callback() {
         AsynchronousCallbackService service = new AsynchronousCallbackServiceImpl(Executors.newFixedThreadPool(2));
 
         CountDownLatch completionSignal = new CountDownLatch(3);
@@ -47,7 +45,7 @@ public class Ex02_CallbackComposition {
         }, ex -> log.error("Error handling here", ex));
 
 
-        //operations may accomplish in different time. It is our responsibility to wait for completion of all opearations
+        //operations may accomplish in different time. It is our responsibility to wait for completion of all operations
         boolean await10Seconds = completionSignal.await(10, TimeUnit.SECONDS);
         assertThat(await10Seconds).withFailMessage("Await timed out!").isTrue();
 
@@ -58,7 +56,7 @@ public class Ex02_CallbackComposition {
     @Test
     @SneakyThrows
     public void executeParallelAndCombine_Reactor() {
-        AsynchronousReactiveServiceImpl service = new AsynchronousReactiveServiceImpl();
+        ReactiveServiceImpl service = new ReactiveServiceImpl();
 
         Mono.zip(service.findAge(USER_ID),
                 service.findAddress(USER_ID),

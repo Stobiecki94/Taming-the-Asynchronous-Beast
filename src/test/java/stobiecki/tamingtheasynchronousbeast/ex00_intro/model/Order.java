@@ -9,7 +9,7 @@ public class Order {
     String address;
     Status status;
 
-    enum Status {
+    public enum Status {
         PROCESSING,
         CANCELLED,
         COMPLETED
