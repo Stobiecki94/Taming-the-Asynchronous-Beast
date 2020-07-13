@@ -23,13 +23,13 @@ public class Ex01_ColdAndHotPublishers {
 
         flux.subscribe(i -> System.out.println("first_subscriber received value:" + i));
 
-        sleepForAWhile();
+        sleepFor3Seconds();
 
         // Let a second subscriber come after some time 3 secs here.
         flux.subscribe(i -> System.out.println("second_subscriber received value:" + i)); // <-  even when the second subscriber is subscribing 3 seconds later,
         // still it starts getting the values from the beginning all the way
 
-        sleepForAWhile();
+        sleepFor3Seconds();
     }
 
     /**
@@ -54,16 +54,16 @@ public class Ex01_ColdAndHotPublishers {
         // Start firing events with .connect() on the published flux.
         connectableFlux.connect();
 
-        sleepForAWhile();
+        sleepFor3Seconds();
 
         // Let a second subscriber come after some time 3 secs here.
         connectableFlux.subscribe(i -> System.out.println("second_subscriber received value:" + i)); // <-- the second subscriber only gets value from 3 seconds which is 3 onwards and misses, 0,1,2
 
-        sleepForAWhile();
+        sleepFor3Seconds();
     }
 
     @SneakyThrows
-    private void sleepForAWhile() {
+    private void sleepFor3Seconds() {
         Thread.sleep(3_100);
     }
 }

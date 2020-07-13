@@ -8,6 +8,7 @@ import reactor.test.StepVerifier;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
@@ -92,6 +93,14 @@ public class Ex01_FactoryMethods {
 
         StepVerifier.create(intervalFlux)
                 .expectNext(0L, 1L, 2L, 3L, 4L)
+                .verifyComplete();
+    }
+
+    @Test
+    void createAFlux_empty() {
+        Flux<Long> empty = Flux.empty();
+
+        StepVerifier.create(empty)
                 .verifyComplete();
     }
 }

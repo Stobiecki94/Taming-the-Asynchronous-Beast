@@ -41,7 +41,7 @@ public class Ex03_OverflowStrategies {
             System.out.println(Thread.currentThread().getName() + " | Received = " + i);
             // 500 mills delay to simulate slow subscriber
             try {
-                Thread.sleep(500);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

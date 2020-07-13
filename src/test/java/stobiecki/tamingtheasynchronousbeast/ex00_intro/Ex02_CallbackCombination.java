@@ -13,7 +13,7 @@ import java.util.concurrent.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-public class Ex02_CallbackComposition {
+public class Ex02_CallbackCombination {
 
     private static final String USER_ID = "userId";
 

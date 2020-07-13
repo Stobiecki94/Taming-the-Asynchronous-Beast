@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-public class Ex04_CompletableFutureCompositionAndCombination {
+public class Ex04_CompletableFutureCombination {
 
     //scenario: getUsersName -> get their hobbies and age -> then combine
 
@@ -27,7 +27,7 @@ public class Ex04_CompletableFutureCompositionAndCombination {
                             userNames.stream().map(name -> {
                                 CompletableFuture<String> hobbyTask = futureService.getHobby(name);
                                 CompletableFuture<Integer> ageTask = futureService.getAge(name);
-                                return hobbyTask.thenCombineAsync(ageTask, (hobby, age) -> name + " is " + age + " years old and likes " + hobby);
+                                return hobbyTask.thenCombineAsync(ageTask, (hobby, age) -> name + " is " + age + " years old and likes " + hobby); // <-- combine - a'la zip
                             })
                                     .collect(Collectors.toList());
 
