@@ -51,7 +51,7 @@ public class Ex01_CallbackHell {
 
         service.findCustomer("customerId")
                 .flatMapMany(service::findOrders)
-                .filter(order -> order.getStatus() == Order.Status.COMPLETED)
+                .filter(order -> order.getStatus() == Order.Status.COMPLETED) // <-- line added
                 .flatMap(service::findShoppingCard)
                 .doOnNext(shoppingCart -> log.info("shoppingCart: {}", shoppingCart))
                 .doOnError(error -> log.error("error", error))

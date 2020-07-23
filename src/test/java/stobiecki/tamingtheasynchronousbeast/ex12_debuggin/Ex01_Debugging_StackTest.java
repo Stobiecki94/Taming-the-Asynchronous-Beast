@@ -9,7 +9,7 @@ import java.io.File;
 
 public class Ex01_Debugging_StackTest {
 
-    //TRAP - unobvious
+    //TRAP
     @Test
     public void debugging() {
 //        Hooks.onOperatorDebug(); // <-- uncomment

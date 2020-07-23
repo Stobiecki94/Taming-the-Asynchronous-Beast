@@ -11,6 +11,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.util.EntityUtils;
 import org.junit.jupiter.api.Test;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
@@ -25,7 +26,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-public class Ex04_BridgeFromRegularJavaWorldToReactiveWorld_MonoCreate {
+public class Ex04_BridgeFromRegularJavaWorldToReactiveWorld_FluxCreate2 {
 
     /**
      * TIP: create can be very useful to bridge an existing API with the reactive world - such as an asynchronous API based on listeners.
@@ -68,19 +69,17 @@ public class Ex04_BridgeFromRegularJavaWorldToReactiveWorld_MonoCreate {
         CountDownLatch countDownLatch = new CountDownLatch(1);
         HttpClientWithListeners httpClient = new HttpClientWithListeners(HttpClientBuilder.create().build());
 
-        Mono<String> bridge = Mono.create(sink -> {
-
+        Flux<String> bridge = Flux.create(sink -> {
             HttpResponseListener httpResponseListener = httpResponse -> {
                 int statusCode = httpResponse.getStatusLine().getStatusCode();
-                if (statusCode >= 400) {
+                if (statusCode >= 300) {
                     sink.error(new RuntimeException(String.format("Failed, get response with status: %d", statusCode)));
                 } else {
                     Try.ofCallable(() -> EntityUtils.toString(httpResponse.getEntity()))
                             .onSuccess(content -> {
                                 if (content.isEmpty()) {
-                                    sink.success(); // <-- empty
                                 } else {
-                                    sink.success(content);
+                                    sink.next(content);
                                 }
                             })
                             .onFailure(sink::error);
@@ -96,8 +95,9 @@ public class Ex04_BridgeFromRegularJavaWorldToReactiveWorld_MonoCreate {
 
         bridge
                 .publishOn(Schedulers.newSingle("save-content-thread"))
+                .take(2)
                 .subscribe(
-                        pageContent -> saveToTemporaryFile(pageContent, "gfi-aktualnosci"),
+                        pageContent -> saveToTemporaryFile(pageContent, "saved"),
                         error -> log.error("Error", error),
                         () -> {
                             log.info("Done");
@@ -111,8 +111,15 @@ public class Ex04_BridgeFromRegularJavaWorldToReactiveWorld_MonoCreate {
         }, "http-client-thread")
                 .start();
 
-        boolean await5Seconds = countDownLatch.await(5, TimeUnit.SECONDS);
-        assertThat(await5Seconds).withFailMessage("Await timed out!").isTrue();
+        new Thread(() -> {
+            HttpGet request = new HttpGet("https://gfieast.com/pl/");
+            log.info("executed GET request");
+            httpClient.execute(request);
+        }, "http-client-thread2")
+                .start();
+
+        boolean await10Seconds = countDownLatch.await(10, TimeUnit.SECONDS);
+        assertThat(await10Seconds).withFailMessage("Await timed out!").isTrue();
     }
 
     @SneakyThrows

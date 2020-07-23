@@ -8,7 +8,6 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.ZonedDateTime;
-import java.util.Date;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
-public class Ex01_Schedulers {
+public class Ex02_Schedulers {
 
     @Test
     @SneakyThrows
@@ -99,6 +98,7 @@ public class Ex01_Schedulers {
         boolean await10Second = completionSignal.await(10, TimeUnit.SECONDS);
         assertThat(await10Second).withFailMessage("Await timed out!").isTrue();
     }
+
     @Test
     @SneakyThrows
     public void parallelWithRunOn2() {
@@ -124,7 +124,7 @@ public class Ex01_Schedulers {
 
         ExecutorService myPool = Executors.newFixedThreadPool(10);
 
-        Flux.range(1,5)
+        Flux.range(1, 5)
                 .parallel()
                 .runOn(Schedulers.fromExecutorService(myPool))
                 .flatMap(a -> Mono.just(blockingGetInfo(a)))
@@ -147,7 +147,7 @@ public class Ex01_Schedulers {
         CountDownLatch completionSignal = new CountDownLatch(1);
 
         ExecutorService myPool = Executors.newFixedThreadPool(5);
-        Flux.range(1,5)
+        Flux.range(1, 5)
                 .parallel(5)
                 .runOn(Schedulers.fromExecutorService(myPool))
                 .flatMap(a -> Mono.just(blockingGetInfo(a)))
@@ -164,7 +164,7 @@ public class Ex01_Schedulers {
     public void parallelFinal() {
         CountDownLatch completionSignal = new CountDownLatch(1);
 
-        Flux.range(1,10)
+        Flux.range(1, 10)
                 .flatMap(this::getInfoCallable)
                 .subscribe(System.out::println, error -> System.out.println("Error " + error.getMessage()), completionSignal::countDown);
 

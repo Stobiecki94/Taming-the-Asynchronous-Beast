@@ -12,7 +12,7 @@ import reactor.test.StepVerifier;
 import java.time.Duration;
 
 @Slf4j
-public class Ex02_threadingAndSchedulers {
+public class Ex03_threadingAndSchedulers {
 
     //@formatter:off
     /**

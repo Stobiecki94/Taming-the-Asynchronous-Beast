@@ -20,7 +20,7 @@ public class BuildVsExecutionTrap {
     @Test
     @SneakyThrows
     public void buildVsExecutionTrap2() {
-        Mono.fromCallable(this::blockingGet);
+        Mono.fromCallable(this::blockingGet); // <- nothing happens until subscribe
     }
 
     @Test
@@ -33,9 +33,9 @@ public class BuildVsExecutionTrap {
     @Test
     @SneakyThrows
     public void buildVsExecutionTrap31() {
-        nonBlockingGet(); // <-- there is no subscribe but....
+        nonBlockingGet(); // <-- there is no subscribe but...
     }
-    //22:28:38.413 [main] INFO stobiecki.tamingtheasynchronousbeast.ex11_more.BuildVsExecutionTrap - Sending HTTP request
+    //BUT this: INFO stobiecki.tamingtheasynchronousbeast.ex11_more.BuildVsExecutionTrap - Sending HTTP request <--- misleading log
 
     @Test
     @SneakyThrows
@@ -63,6 +63,7 @@ public class BuildVsExecutionTrap {
     public void buildVsExecutionTrap6() {
         Mono.fromCallable(this::blockingGet)
                 .switchIfEmpty(Mono.fromCallable(() -> fallback()));
+        //does nothing because not subscribed
     }
 
     @Test
@@ -70,6 +71,7 @@ public class BuildVsExecutionTrap {
     public void buildVsExecutionTrap7() {
         Mono.fromCallable(this::blockingGet)
                 .switchIfEmpty(Mono.defer(() -> Mono.just(fallback())));
+        //does nothing because not subscribed
     }
 
     @SneakyThrows

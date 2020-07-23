@@ -17,7 +17,7 @@ public class ElasticTrap {
     @Test
     @SneakyThrows
     public void elasticTrap() {
-        Flux<Integer> fluxAsyncBackp = Flux.create(emitter -> {
+        Flux<Integer> flux = Flux.create(emitter -> {
 
             // Publish 1000 numbers
             for (int i = 0; i < 1_000; i++) { // <-- change
@@ -27,7 +27,7 @@ public class ElasticTrap {
             emitter.complete();
         }, FluxSink.OverflowStrategy.IGNORE);
 
-        fluxAsyncBackp
+        flux
                 .subscribeOn(Schedulers.newElastic("publisherThread"))
                 .flatMap(this::someOperationOnElasticThread)
                 .blockLast();
@@ -47,11 +47,11 @@ public class ElasticTrap {
     public void elasticTrapFix() {
         LinkedBlockingQueue<Runnable> taskQueue = new LinkedBlockingQueue<>(10_000);
         RejectedExecutionHandler rejectedExecutionHandler = new ThreadPoolExecutor.CallerRunsPolicy();
-        ExecutorService executorService = new ThreadPoolExecutor(1000, 1000, 0L, MILLISECONDS, taskQueue, Executors.defaultThreadFactory(), rejectedExecutionHandler);
+        ExecutorService executorService = new ThreadPoolExecutor(100, 100, 0L, MILLISECONDS, taskQueue, Executors.defaultThreadFactory(), rejectedExecutionHandler);
         Scheduler scheduler = Schedulers.fromExecutor(executorService);
 
 
-        Flux<Integer> fluxAsyncBackp = Flux.create(emitter -> {
+        Flux<Integer> flux = Flux.create(emitter -> {
 
             // Publish 10_000 numbers
             for (int i = 0; i < 10_000; i++) {
@@ -61,7 +61,7 @@ public class ElasticTrap {
             emitter.complete();
         }, FluxSink.OverflowStrategy.IGNORE);
 
-        fluxAsyncBackp
+        flux
                 .subscribeOn(Schedulers.newElastic("publisherThread"))
                 .flatMap(index -> someOperationOnElasticThread(index, scheduler))
                 .blockLast();
@@ -70,7 +70,7 @@ public class ElasticTrap {
     private Mono<String> someOperationOnElasticThread(int index, Scheduler scheduler) {
         return Mono.fromCallable(() -> {
             System.out.println(Thread.currentThread().getName() + " | operation = " + index);
-            Thread.sleep(30_000);
+            Thread.sleep(3_000);
             return String.valueOf(index);
         })
                 .subscribeOn(scheduler);

@@ -28,7 +28,7 @@ public class Ex07_Handle {
      */
     @Test
     public void handle_map() {
-        Flux<String> alphabet = Flux.just(-1, 2, 18, 5, 1, 11)
+        Flux<String> alphabet = Flux.just(-1, 2, 15, 19, 19)
                 .map(this::alphabet);
 
         alphabet
@@ -39,7 +39,7 @@ public class Ex07_Handle {
 
     @Test
     public void handle_map2() {
-        Flux<String> alphabet = Flux.just(-1, 2, 18, 5, 1, 11)
+        Flux<String> alphabet = Flux.just(-1, 2, 15, 19, 19)
                 .map(letterNumber -> Optional.ofNullable(alphabet(letterNumber)))
                 .filter(Optional::isPresent)
                 .map(Optional::get);
@@ -47,13 +47,13 @@ public class Ex07_Handle {
         alphabet
                 .subscribe(log::info);
 
-        log.info(alphabet.toStream().collect(Collectors.joining()) + " 5 minutes");
+        log.info(alphabet.toStream().collect(Collectors.joining()));
     }
 
     //handle = map + filter
     @Test
     public void handle_mapAndEliminateNulls() {
-        Flux<String> alphabet = Flux.just(-1, 2, 18, 5, 1, 11)
+        Flux<String> alphabet = Flux.just(-1, 2, 15, 19, 19)
                 .handle((i, sink) -> {
                     String letter = alphabet(i);
                     if (letter != null)
@@ -63,7 +63,7 @@ public class Ex07_Handle {
         alphabet
                 .subscribe(log::info);
 
-        log.info(alphabet.toStream().collect(Collectors.joining()) + " 5 minutes");
+        log.info(alphabet.toStream().collect(Collectors.joining()));
     }
 
     public String alphabet(int letterNumber) {

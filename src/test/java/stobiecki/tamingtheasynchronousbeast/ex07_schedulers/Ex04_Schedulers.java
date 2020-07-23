@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-public class Ex012_Schedulers {
+public class Ex04_Schedulers {
 
     /**
      * Reactor uses a Scheduler as a contract for arbitrary task execution. It provides some guarantees required by Reactive Streams flows like FIFO execution.

@@ -3,8 +3,6 @@ package stobiecki.tamingtheasynchronousbeast.ex05_backpressure_and_ways_to_resha
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.reactivestreams.Subscription;
-import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.scheduler.Schedulers;
@@ -17,7 +15,7 @@ public class Ex03_OverflowStrategies {
 
     /**
      * DROP to drop the incoming signal if the downstream is not ready to receive it.
-     *
+     * <p>
      * DROP strategy drops the most recent next value if the downstream can’t keep up because its too slow.
      * There are also ways provided to consume dropped values and handle them separately.
      */
@@ -25,7 +23,6 @@ public class Ex03_OverflowStrategies {
     @SneakyThrows
     public void overflowStrategy_DROP() {
         Flux<Object> fluxAsyncBackp = Flux.create(emitter -> {
-
             // Publish 1000 numbers
             for (int i = 0; i < 1000; i++) {
                 System.out.println(Thread.currentThread().getName() + " | Publishing = " + i);
@@ -36,15 +33,17 @@ public class Ex03_OverflowStrategies {
         }, FluxSink.OverflowStrategy.DROP)
                 .onBackpressureDrop(i -> System.out.println(Thread.currentThread().getName() + " | DROPPED = " + i));
 
-        fluxAsyncBackp.subscribeOn(Schedulers.newElastic("publisherThread")).publishOn(Schedulers.newElastic("subscriberThread")).subscribe(i -> {
+        fluxAsyncBackp.subscribeOn(Schedulers.newElastic("publisherThread"))
+                .publishOn(Schedulers.newElastic("subscriberThread")).subscribe(i -> {
             // Process received value.
-            System.out.println(Thread.currentThread().getName() + " | Received = " + i);
-            // 500 mills delay to simulate slow subscriber
+            // 100 mills delay to simulate slow subscriber
             try {
                 Thread.sleep(100);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
+            System.out.println(Thread.currentThread().getName() + " | Received = " + i);
+
         });
         /*
          * Notice above -
@@ -63,7 +62,7 @@ public class Ex03_OverflowStrategies {
 
     /**
      * LATEST to let downstream only get the latest signals from upstream.
-     *
+     * <p>
      * LATEST strategy keeps only the latest next value, overwriting any previous value if the downstream can’t keep up because its too slow.
      */
     @Test
@@ -118,10 +117,10 @@ public class Ex03_OverflowStrategies {
 
 
     /**
-     *  ERROR to signal an IllegalStateException when the downstream can’t keep up.
-     *
-     *  ERROR strategy throws OverflowException in case the downstream can’t keep up due to slowness.
-     *  Publisher can handle exception & make sure to call error handle so that subscriber can do handling on subscriber side for such error scenarios.
+     * ERROR to signal an IllegalStateException when the downstream can’t keep up.
+     * <p>
+     * ERROR strategy throws OverflowException in case the downstream can’t keep up due to slowness.
+     * Publisher can handle exception & make sure to call error handle so that subscriber can do handling on subscriber side for such error scenarios.
      */
     @Test
     @SneakyThrows
@@ -166,10 +165,10 @@ public class Ex03_OverflowStrategies {
     }
 
     /**
-     *  BUFFER (the default) to buffer all signals if the downstream can’t keep up. (this does unbounded buffering and may lead to OutOfMemoryError).
-     *
-     *  With BUFFER strategy, as name suggests all values are buffered so that subscriber can receive all values.
-     *  As per program below, buffer is infinite, so if published values are large in count & subscriber is too slow, then there is chance of out of memory just like Observable.
+     * BUFFER (the default) to buffer all signals if the downstream can’t keep up. (this does unbounded buffering and may lead to OutOfMemoryError).
+     * <p>
+     * With BUFFER strategy, as name suggests all values are buffered so that subscriber can receive all values.
+     * As per program below, buffer is infinite, so if published values are large in count & subscriber is too slow, then there is chance of out of memory just like Observable.
      */
     @Test
     @SneakyThrows
@@ -212,10 +211,9 @@ public class Ex03_OverflowStrategies {
     }
 
 
-
     /**
-     *  IGNORE to Completely ignore downstream backpressure requests. This may yield IllegalStateException when queues get full downstream.
-     *  BUFFER (the default) to buffer all signals if the downstream can’t keep up. (this does unbounded buffering and may lead to OutOfMemoryError).
+     * IGNORE to Completely ignore downstream backpressure requests. This may yield IllegalStateException when queues get full downstream.
+     * BUFFER (the default) to buffer all signals if the downstream can’t keep up. (this does unbounded buffering and may lead to OutOfMemoryError).
      */
     @Test
     @SneakyThrows

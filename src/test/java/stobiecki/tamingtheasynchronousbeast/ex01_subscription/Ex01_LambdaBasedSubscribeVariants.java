@@ -123,6 +123,7 @@ public class Ex01_LambdaBasedSubscribeVariants {
                         () -> log.info("No more temperature data"),
                         subscription -> log.info("Subscription: {}", subscription));
 //        Note: That variant requires you to do something with the Subscription (perform a request(long) on it or cancel() it).
+//        Note: If 'Subscription consumer' is not specified, then: The subscription will request unbounded demand (Long.MAX_VALUE).
     }
 
     @Test
@@ -162,7 +163,6 @@ public class Ex01_LambdaBasedSubscribeVariants {
                         error -> log.error("Something went wrong", error),
                         () -> log.info("No more temperature data"),
                         sub -> sub.request(1_000_000));
-//        Note: If 'Subscription consumer' is not specified, then: The subscription will request unbounded demand (Long.MAX_VALUE).
     }
 
     @Test

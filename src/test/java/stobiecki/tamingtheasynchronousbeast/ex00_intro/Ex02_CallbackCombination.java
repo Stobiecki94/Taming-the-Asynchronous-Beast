@@ -30,7 +30,7 @@ public class Ex02_CallbackCombination {
         Holder<String> addressHolder = new Holder<>();
         Holder<String> hobbyHolder = new Holder<>();
 
-        //three operations happens in parallel
+        //three operations happens simultaneously
         service.findAge(USER_ID, age -> {
             ageHolder.setValue(age);
             completionSignal.countDown();
